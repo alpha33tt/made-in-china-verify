@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Email Sender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 700px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin: 15px 0 5px;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .api-key {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .message {
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Key Email Sender</h1>
+        <div>
+            <p>Your API Key: <span id="apiKey" class="api-key">Not Generated</span></p>
+            <button id="generateApiKeyBtn">Generate API Key</button>
+        </div>
+
+        <form id="emailForm">
+            <label for="fromEmail">From Email:</label>
+            <input type="email" id="fromEmail" placeholder="example@example.com" required>
+
+            <label for="fromName">From Name:</label>
+            <input type="text" id="fromName" placeholder="Sender Name" required>
+
+            <label for="toEmails">Recipients (comma-separated):</label>
+            <input type="text" id="toEmails" placeholder="recipient1@example.com, recipient2@example.com" required>
+
+            <label for="subject">Subject:</label>
+            <input type="text" id="subject" placeholder="Email Subject" required>
+
+            <label for="htmlContent">Email Body (HTML):</label>
+            <textarea id="htmlContent" rows="10" placeholder="<h1>Hello</h1><p>This is a test email</p>" required></textarea>
+
+            <button type="button" id="sendEmailBtn">Send Email</button>
+        </form>
+
+        <p id="responseMessage" class="message"></p>
+    </div>
+
+    <script>
+        let apiKey = null;
+
+        // Generate API Key
+        document.getElementById('generateApiKeyBtn').addEventListener('click', async () => {
+            const response = await fetch('http://localhost:5000/generate_api_key');
+            const result = await response.json();
+            apiKey = result.api_key;
+            document.getElementById('apiKey').innerText = apiKey;
+            alert('API Key generated successfully!');
+        });
+
+        // Send Email
+        document.getElementById('sendEmailBtn').addEventListener('click', async () => {
+            if (!apiKey) {
+                alert('Please generate an API key first!');
+                return;
+            }
+
+            const fromEmail = document.getElementById('fromEmail').value;
+            const fromName = document.getElementById('fromName').value;
+            const toEmails = document.getElementById('toEmails').value.split(',');
+            const subject = document.getElementById('subject').value;
+            const htmlContent = document.getElementById('htmlContent').value;
+
+            const response = await fetch('http://localhost:5000/send_email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'API-Key': apiKey
+                },
+                body: JSON.stringify({
+                    from_email: fromEmail,
+                    from_name: fromName,
+                    to_emails: toEmails,
+                    subject: subject,
+                    html_content: htmlContent
+                })
+            });
+
+            const result = await response.json();
+            document.getElementById('responseMessage').innerText = result.message || result.error;
+        });
+    </script>
+</body>
+</html>
